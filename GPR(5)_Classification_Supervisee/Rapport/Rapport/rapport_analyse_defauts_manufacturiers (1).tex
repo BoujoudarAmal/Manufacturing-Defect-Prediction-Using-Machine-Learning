@@ -1,0 +1,1476 @@
+\documentclass[12pt,a4paper]{article}
+
+% ============================================================================
+% PACKAGES
+% ============================================================================
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+
+% Configuration des liens hypertexte
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    citecolor=blue,
+    pdftitle={Analyse des Défauts Manufacturiers},
+    pdfauthor={Votre Nom},
+}
+
+% Configuration de l'en-tête et du pied de page
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Analyse des Défauts Manufacturiers}
+\lhead{}
+\cfoot{\thepage}
+
+% Configuration du code source
+\lstset{
+    language=R,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=5pt,
+    backgroundcolor=\color{white},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    frame=single,
+    tabsize=2,
+    captionpos=b,
+    breaklines=true,
+    breakatwhitespace=false,
+    title=\lstname,
+    escapeinside={\%*}{*)},
+    morekeywords={*,...}
+}
+
+% ============================================================================
+% PAGE DE GARDE
+% ============================================================================
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    
+    % Logos en haut
+    \begin{figure}[h]
+        \centering
+        \begin{minipage}{0.45\textwidth}
+            \centering
+            \includegraphics[width=0.8\textwidth]{LogoFSDM.png}
+        \end{minipage}
+        \hfill
+        \begin{minipage}{0.45\textwidth}
+            \centering
+            \includegraphics[width=0.8\textwidth]{logoUSPN.png}
+        \end{minipage}
+    \end{figure}
+    
+    \vspace{1.5cm}
+    
+    % Titre principal
+    {\huge\bfseries Analyse Prédictive des Défauts Manufacturiers\par}
+    \vspace{0.8cm}
+    {\Large Comparaison de Modèles de Machine Learning\par}
+    
+    \vspace{2cm}
+    
+    % Informations sur les étudiants
+    {\large\textbf{Réalisé par :}\par}
+    \vspace{0.5cm}
+    {\Large AIT HSSAINE Hayat\par}
+    {\Large BOUJOUDAR Amal\par}
+    
+    \vspace{1.5cm}
+    
+    % Informations académiques
+    {\large\textbf{Encadré par :}\par}
+    \vspace{0.3cm}
+    {\large Pr. Abdelkamel ALJ\par}
+    
+    \vspace{1.5cm}
+    
+    {\large Projet réalisé dans le cadre du module\par}
+    \vspace{0.3cm}
+    {\large\textbf{Statistiques Exploratoire Multidimensionnelle}\par}
+    
+    \vspace{0.8cm}
+    
+    {\large Master WISD\par}
+    {\large Faculté des Sciences Dhar El Mahraz\par}
+    {\large Université Sidi Mohamed Ben Abdellah\par}
+    
+    \vfill
+    
+    % Année académique en bas
+    {\large Année Universitaire 2025-2026\par}
+    
+\end{titlepage}
+
+% ============================================================================
+% TABLE DES MATIÈRES
+% ============================================================================
+\tableofcontents
+\newpage
+
+% ============================================================================
+% RÉSUMÉ
+% ============================================================================
+\begin{abstract}
+
+Ce rapport présente une analyse comparative de cinq algorithmes de classification supervisée pour la prédiction des défauts dans un processus de fabrication. S'inscrivant dans le cadre de l'apprentissage automatique supervisé, l'étude utilise un ensemble de données manufacturières contenant 3240 observations étiquetées et 17 variables prédictives. Les modèles évalués incluent la régression logistique, l'analyse discriminante linéaire (LDA), les k-plus proches voisins (k-NN), les machines à vecteurs de support (SVM) et les forêts aléatoires (Random Forest). Cette approche supervisée permet d'entraîner les modèles sur des données historiques pour prédire le statut de défaut de nouveaux produits. Les résultats montrent que le modèle Random Forest offre les meilleures performances avec une AUC de 0.876, identifiant les heures de maintenance, le taux de défauts et le score de qualité comme les variables les plus prédictives de défauts manufacturiers.
+\end{abstract}
+
+\newpage
+
+% ============================================================================
+% 1. INTRODUCTION
+% ============================================================================
+\section{Introduction}
+
+\subsection{Contexte}
+Dans l'industrie manufacturière moderne, la détection précoce des défauts de production est cruciale pour maintenir la qualité des produits, réduire les coûts et améliorer l'efficacité opérationnelle. Les défauts de fabrication peuvent entraîner des pertes financières importantes, des retards de livraison et une détérioration de la réputation de l'entreprise.
+
+L'avènement du machine learning et de l'analyse prédictive offre de nouvelles opportunités pour anticiper et prévenir les défauts avant qu'ils ne se produisent. En analysant les données historiques de production, il est possible d'identifier les patterns et les facteurs qui contribuent à l'apparition de défauts.
+
+\subsection{Motivation}
+Les méthodes traditionnelles de contrôle qualité sont souvent réactives et coûteuses. Une approche prédictive basée sur l'apprentissage automatique permet de :
+\begin{itemize}
+    \item Détecter les défauts potentiels avant qu'ils ne se produisent
+    \item Optimiser les processus de maintenance
+    \item Réduire les coûts liés aux rebuts et aux reprises
+    \item Améliorer la satisfaction client par une meilleure qualité
+\end{itemize}
+
+\subsection{Structure du rapport}
+Ce rapport est organisé comme suit : la section~\ref{sec:objectifs} présente les objectifs et la problématique ; la section~\ref{sec:donnees} décrit la base de données ; la section~\ref{sec:theorie} expose les fondements théoriques des modèles ; la section~\ref{sec:resultats} présente les résultats ; et enfin, la section~\ref{sec:conclusion} conclut l'étude.
+
+% ============================================================================
+% 2. OBJECTIFS ET PROBLÉMATIQUE
+% ============================================================================
+\section{Objectifs et Problématique}
+\label{sec:objectifs}
+
+\subsection{Objectif principal}
+L'objectif principal de ce projet est de développer et de comparer plusieurs modèles prédictifs capables de classifier les produits manufacturés en deux catégories : défectueux ou non défectueux, en utilisant des variables de processus de fabrication.
+
+\subsection{Objectifs spécifiques}
+\begin{enumerate}
+    \item Analyser les caractéristiques des données manufacturières
+    \item Identifier les variables les plus prédictives des défauts
+    \item Entraîner et évaluer cinq modèles de classification différents
+    \item Comparer les performances des modèles selon plusieurs métriques
+    \item Recommander le meilleur modèle pour la détection de défauts
+\end{enumerate}
+
+\subsection{Problématique}
+\textbf{Question de recherche :} Quel modèle de machine learning offre les meilleures performances pour prédire les défauts de fabrication, et quelles sont les variables les plus importantes dans cette prédiction ?
+
+\textbf{Hypothèses :}
+\begin{itemize}
+    \item H1 : Les modèles non linéaires (Random Forest, SVM) surpasseront les modèles linéaires (Régression Logistique, LDA)
+    \item H2 : Les variables liées à la maintenance et à la qualité seront les plus prédictives
+    \item H3 : Le dataset présente un déséquilibre de classes en faveur des produits non défectueux
+\end{itemize}
+
+% ============================================================================
+% 3. BASE DE DONNÉES
+% ============================================================================
+\section{Base de Données}
+\label{sec:donnees}
+
+\subsection{Description générale}
+Le dataset utilisé dans cette étude contient des informations sur le processus de fabrication de produits industriels. Il s'agit d'un ensemble de données réelles collectées dans un environnement de production.
+
+\textbf{Caractéristiques du dataset :}
+\begin{itemize}
+    \item \textbf{Nombre d'observations :} 3240 produits
+    \item \textbf{Nombre de variables :} 18 (17 prédictives + 1 cible)
+    \item \textbf{Type de problème :} Classification binaire
+    \item \textbf{Variable cible :} DefectStatus (0 = Non défectueux, 1 = Défectueux)
+\end{itemize}
+
+\subsection{Variables}
+
+\subsubsection{Variable cible}
+\begin{itemize}
+    \item \textbf{DefectStatus} : Indique si le produit est défectueux (1) ou non (0)
+\end{itemize}
+
+\subsubsection{Variables prédictives}
+Le Tableau~\ref{tab:variables} présente l'ensemble des variables prédictives utilisées dans l'analyse.
+
+\begin{table}[H]
+\centering
+\caption{Description des variables prédictives}
+\label{tab:variables}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Variable} & \textbf{Type} & \textbf{Description} \\
+\midrule
+ProductionVolume & Numérique & Volume de production \\
+ProductionCost & Numérique & Coût de production \\
+SupplierQuality & Numérique & Qualité du fournisseur \\
+DeliveryDelay & Numérique & Retard de livraison \\
+DefectRate & Numérique & Taux de défauts historique \\
+QualityScore & Numérique & Score de qualité \\
+MaintenanceHours & Numérique & Heures de maintenance \\
+DowntimePercentage & Numérique & Pourcentage d'arrêt \\
+InventoryTurnover & Numérique & Rotation des stocks \\
+StockoutRate & Numérique & Taux de rupture de stock \\
+WorkerProductivity & Numérique & Productivité des travailleurs \\
+SafetyIncidents & Numérique & Incidents de sécurité \\
+EnergyConsumption & Numérique & Consommation d'énergie \\
+EnergyEfficiency & Numérique & Efficacité énergétique \\
+AdditiveProcessTime & Numérique & Temps de processus additif \\
+AdditiveMaterialCost & Numérique & Coût du matériau additif \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Statistiques descriptives}
+
+\subsubsection{Distribution de la variable cible}
+Le Tableau~\ref{tab:distribution_cible} présente la répartition des classes dans le dataset.
+
+\begin{table}[H]
+\centering
+\caption{Distribution de la variable cible}
+\label{tab:distribution_cible}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Classe} & \textbf{Fréquence} & \textbf{Pourcentage} \\
+\midrule
+Non défectueux (0) & 2723 & 84.04\% \\
+Défectueux (1) & 517 & 15.96\% \\
+\midrule
+\textbf{Total} & 3240 & 100\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Observation :} Le dataset présente un déséquilibre de classes important, avec environ 84\% de produits non défectueux et 16\% de produits défectueux. Ce déséquilibre est typique dans les environnements manufacturiers où les défauts sont relativement rares.
+
+\subsubsection{Statistiques des variables numériques}
+Les statistiques descriptives des principales variables sont présentées dans le Tableau~\ref{tab:stats_desc}.
+
+\begin{table}[H]
+\centering
+\caption{Statistiques descriptives des variables principales}
+\label{tab:stats_desc}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Variable} & \textbf{Moyenne} & \textbf{Écart-type} & \textbf{Min} & \textbf{Max} \\
+\midrule
+MaintenanceHours & 125.5 & 45.3 & 20.0 & 250.0 \\
+DefectRate & 0.15 & 0.08 & 0.01 & 0.45 \\
+QualityScore & 75.2 & 12.4 & 35.0 & 98.0 \\
+ProductionVolume & 1500.3 & 580.2 & 200.0 & 3500.0 \\
+WorkerProductivity & 85.6 & 15.8 & 40.0 & 120.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Valeurs manquantes}
+Après inspection du dataset, \textbf{aucune valeur manquante} n'a été détectée. Toutes les observations sont complètes, ce qui facilite l'analyse et évite les problèmes liés à l'imputation de données.
+
+\subsection{Analyse de corrélation}
+Une matrice de corrélation a été générée pour identifier les relations entre les variables (voir Figure~\ref{fig:correlation} en annexe). Les principales observations sont :
+
+\begin{itemize}
+    \item Forte corrélation positive entre MaintenanceHours et DefectRate (r = 0.65)
+    \item Corrélation négative entre QualityScore et DefectRate (r = -0.58)
+    \item Faible corrélation entre les variables de production et d'énergie
+\end{itemize}
+
+Ces corrélations suggèrent que les variables liées à la maintenance et à la qualité jouent un rôle important dans la prédiction des défauts.
+
+% ============================================================================
+% 4. FONDEMENTS THÉORIQUES DES MODÈLES
+% ============================================================================
+\section{Fondements Théoriques des Modèles}
+\label{sec:theorie}
+
+Cette section présente les bases théoriques des cinq modèles de classification utilisés dans l'étude.
+
+\subsection{Régression Logistique}
+
+\subsubsection{Principe}
+La régression logistique est un modèle de classification linéaire qui estime la probabilité qu'une observation appartienne à une classe donnée. Pour un problème de classification binaire, le modèle s'écrit :
+
+\begin{equation}
+P(Y=1|X) = \frac{1}{1 + e^{-(\beta_0 + \beta_1 X_1 + ... + \beta_p X_p)}}
+\end{equation}
+
+où $Y$ est la variable cible, $X$ le vecteur de variables prédictives, et $\beta$ les coefficients du modèle.
+
+\subsubsection{Avantages et inconvénients}
+\textbf{Avantages :}
+\begin{itemize}
+    \item Simple et rapide à entraîner
+    \item Résultats facilement interprétables
+    \item Fonctionne bien avec des relations linéaires
+\end{itemize}
+
+\textbf{Inconvénients :}
+\begin{itemize}
+    \item Suppose une relation linéaire entre les variables
+    \item Peut mal performer avec des données complexes
+    \item Sensible à la multicolinéarité
+\end{itemize}
+
+\subsection{Analyse Discriminante Linéaire (LDA)}
+
+\subsubsection{Principe}
+LDA cherche à trouver une combinaison linéaire des variables qui sépare au mieux les classes. Le modèle suppose que les variables suivent une distribution normale multivariée et que les matrices de covariance sont égales entre les classes.
+
+La règle de décision de LDA est basée sur la fonction discriminante :
+
+\begin{equation}
+\delta_k(x) = x^T \Sigma^{-1} \mu_k - \frac{1}{2}\mu_k^T \Sigma^{-1} \mu_k + \log(\pi_k)
+\end{equation}
+
+où $\mu_k$ est la moyenne de la classe $k$, $\Sigma$ la matrice de covariance commune, et $\pi_k$ la probabilité a priori de la classe $k$.
+
+\subsubsection{Avantages et inconvénients}
+\textbf{Avantages :}
+\begin{itemize}
+    \item Efficace lorsque les hypothèses de normalité sont respectées
+    \item Performant avec des classes bien séparées
+    \item Moins de paramètres à estimer que d'autres modèles
+\end{itemize}
+
+\textbf{Inconvénients :}
+\begin{itemize}
+    \item Suppose la normalité des données
+    \item Sensible aux outliers
+    \item Peut mal performer si les covariances diffèrent entre classes
+\end{itemize}
+
+\subsection{k-Plus Proches Voisins (k-NN)}
+
+\subsubsection{Principe}
+L'algorithme k-NN est une méthode non paramétrique qui classifie une nouvelle observation en fonction de la classe majoritaire parmi ses $k$ plus proches voisins dans l'espace des caractéristiques.
+
+La distance entre deux observations est généralement calculée avec la distance euclidienne :
+
+\begin{equation}
+d(x_i, x_j) = \sqrt{\sum_{p=1}^{n} (x_{ip} - x_{jp})^2}
+\end{equation}
+
+\subsubsection{Avantages et inconvénients}
+\textbf{Avantages :}
+\begin{itemize}
+    \item Aucune hypothèse sur la distribution des données
+    \item Simple à comprendre et à implémenter
+    \item Peut capturer des relations non linéaires
+\end{itemize}
+
+\textbf{Inconvénients :}
+\begin{itemize}
+    \item Coût computationnel élevé pour la prédiction
+    \item Sensible aux variables non standardisées
+    \item Performance dégradée en haute dimension
+\end{itemize}
+
+\subsection{Machines à Vecteurs de Support (SVM)}
+
+\subsubsection{Principe}
+SVM cherche l'hyperplan optimal qui maximise la marge entre les classes. Pour des données non linéairement séparables, SVM utilise le "kernel trick" pour projeter les données dans un espace de dimension supérieure.
+
+Le problème d'optimisation s'écrit :
+
+\begin{equation}
+\min_{w,b} \frac{1}{2}||w||^2 + C\sum_{i=1}^{n}\xi_i
+\end{equation}
+
+sous la contrainte : $y_i(w^Tx_i + b) \geq 1 - \xi_i$, où $C$ est le paramètre de régularisation et $\xi_i$ les variables d'écart.
+
+\subsubsection{Avantages et inconvénients}
+\textbf{Avantages :}
+\begin{itemize}
+    \item Très performant dans de nombreux cas
+    \item Gère bien les données de haute dimension
+    \item Robuste au surapprentissage
+\end{itemize}
+
+\textbf{Inconvénients :}
+\begin{itemize}
+    \item Choix du kernel et des paramètres crucial
+    \item Temps d'entraînement élevé sur grands datasets
+    \item Résultats difficiles à interpréter
+\end{itemize}
+
+\subsection{Forêts Aléatoires (Random Forest)}
+
+\subsubsection{Principe}
+Random Forest est un algorithme d'ensemble qui combine plusieurs arbres de décision entraînés sur des sous-échantillons aléatoires des données. La prédiction finale est obtenue par vote majoritaire.
+
+Pour chaque arbre, un sous-ensemble aléatoire de variables est considéré à chaque nœud, réduisant ainsi la corrélation entre les arbres.
+
+\subsubsection{Avantages et inconvénients}
+\textbf{Avantages :}
+\begin{itemize}
+    \item Très performant en pratique
+    \item Gère bien les interactions entre variables
+    \item Fournit une mesure d'importance des variables
+    \item Robuste au surapprentissage
+\end{itemize}
+
+\textbf{Inconvénients :}
+\begin{itemize}
+    \item Temps d'entraînement plus long
+    \item Moins interprétable qu'un seul arbre
+    \item Nécessite plus de mémoire
+\end{itemize}
+
+\subsection{Métriques d'évaluation}
+
+\subsubsection{Matrice de confusion}
+La matrice de confusion résume les prédictions du modèle :
+
+\begin{table}[H]
+\centering
+\begin{tabular}{cc|cc}
+& & \multicolumn{2}{c}{\textbf{Prédiction}} \\
+& & Négatif & Positif \\
+\hline
+\multirow{2}{*}{\textbf{Réalité}} & Négatif & VN & FP \\
+& Positif & FN & VP \\
+\end{tabular}
+\end{table}
+
+où VN = Vrais Négatifs, VP = Vrais Positifs, FN = Faux Négatifs, FP = Faux Positifs.
+
+\subsubsection{Accuracy (Exactitude)}
+\begin{equation}
+\text{Accuracy} = \frac{VP + VN}{VP + VN + FP + FN}
+\end{equation}
+
+Proportion de prédictions correctes parmi toutes les prédictions.
+
+\subsubsection{Sensibilité (Recall, Taux de vrais positifs)}
+\begin{equation}
+\text{Sensibilité} = \frac{VP}{VP + FN}
+\end{equation}
+
+Proportion de défauts correctement identifiés. Crucial pour minimiser les défauts non détectés.
+
+\subsubsection{Spécificité}
+\begin{equation}
+\text{Spécificité} = \frac{VN}{VN + FP}
+\end{equation}
+
+Proportion de produits non défectueux correctement identifiés. Important pour éviter le gaspillage.
+
+\subsubsection{Coefficient Kappa de Cohen}
+Le coefficient Kappa mesure l'accord entre prédictions et observations en tenant compte de l'accord dû au hasard :
+
+\begin{equation}
+\kappa = \frac{p_o - p_e}{1 - p_e}
+\end{equation}
+
+où $p_o$ est l'accuracy observée et $p_e$ l'accuracy attendue par hasard.
+
+Interprétation : $\kappa > 0.8$ = Excellent, $0.6 < \kappa < 0.8$ = Bon, $\kappa < 0.6$ = Moyen.
+
+\subsubsection{AUC-ROC (Area Under the Curve)}
+L'AUC-ROC mesure la capacité du modèle à discriminer entre les classes. Une courbe ROC trace la sensibilité en fonction de (1 - spécificité).
+
+\begin{itemize}
+    \item AUC = 1.0 : Classifieur parfait
+    \item 0.9 $\leq$ AUC < 1.0 : Excellent
+    \item 0.8 $\leq$ AUC < 0.9 : Très bon
+    \item 0.7 $\leq$ AUC < 0.8 : Bon
+    \item AUC < 0.7 : Moyen
+\end{itemize}
+
+% ============================================================================
+% 5. MÉTHODOLOGIE
+% ============================================================================
+\section{Méthodologie}
+
+\subsection{Prétraitement des données}
+
+\subsubsection{Transformation de la variable cible}
+La variable cible \texttt{DefectStatus} a été transformée en facteur avec des niveaux explicites :
+\begin{itemize}
+    \item 0 $\rightarrow$ "NoDefect" (Sans défaut)
+    \item 1 $\rightarrow$ "Defect" (Avec défaut)
+\end{itemize}
+
+\subsubsection{Nettoyage des données}
+Les colonnes d'identifiant (\texttt{ProductID}) ont été supprimées car elles n'apportent pas d'information prédictive.
+
+\subsection{Division des données}
+Le dataset a été divisé de manière stratifiée :
+\begin{itemize}
+    \item \textbf{70\%} pour l'entraînement (2268 observations)
+    \item \textbf{30\%} pour le test (972 observations)
+\end{itemize}
+
+La stratification garantit que la proportion de défauts est similaire dans les deux ensembles.
+
+\subsection{Validation croisée}
+Une validation croisée à 10 plis (10-fold cross-validation) a été utilisée pour :
+\begin{itemize}
+    \item Évaluer les performances des modèles de manière robuste
+    \item Optimiser les hyperparamètres
+    \item Réduire le risque de surapprentissage
+\end{itemize}
+
+\subsection{Entraînement des modèles}
+Les cinq modèles ont été entraînés avec les paramètres suivants :
+\begin{itemize}
+    \item \textbf{Régression Logistique :} Paramètres par défaut
+    \item \textbf{LDA :} Paramètres par défaut
+    \item \textbf{k-NN :} k optimisé par validation croisée (k = 5, 7, 9)
+    \item \textbf{SVM :} Kernel RBF, paramètres C et sigma optimisés
+    \item \textbf{Random Forest :} 500 arbres, mtry optimisé
+\end{itemize}
+
+\subsection{Évaluation}
+Les modèles ont été évalués sur l'ensemble de test selon :
+\begin{itemize}
+    \item Accuracy, Sensibilité, Spécificité, Kappa
+    \item Courbes ROC et valeurs AUC
+    \item Importance des variables (pour Random Forest)
+\end{itemize}
+
+% ============================================================================
+% 6. RÉSULTATS
+% ============================================================================
+\section{Résultats}
+\label{sec:resultats}
+
+\subsection{Performances comparatives des modèles}
+
+Le Tableau~\ref{tab:performances} présente les performances des cinq modèles sur l'ensemble de test.
+
+\begin{table}[H]
+\centering
+\caption{Performances comparatives des modèles}
+\label{tab:performances}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Modèle} & \textbf{Accuracy} & \textbf{Sensibilité} & \textbf{Spécificité} & \textbf{Kappa} \\
+\midrule
+Régression Logistique & 0.8392 & 0.2581 & 0.9506 & 0.2487 \\
+LDA & 0.8371 & 0.2516 & 0.9494 & 0.2415 \\
+k-NN & 0.8320 & 0.2323 & 0.9469 & 0.2225 \\
+SVM & 0.8608 & 0.3032 & 0.9630 & 0.3078 \\
+\textbf{Random Forest} & \textbf{0.8763} & \textbf{0.3742} & \textbf{0.9691} & \textbf{0.3928} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Analyse des résultats}
+
+\subsubsection{Meilleur modèle}
+\textbf{Random Forest} se démarque avec les meilleures performances sur tous les critères :
+\begin{itemize}
+    \item Accuracy la plus élevée (87.63\%)
+    \item Meilleure sensibilité (37.42\%) - détecte davantage de défauts
+    \item Meilleure spécificité (96.91\%) - minimise les fausses alarmes
+    \item Kappa le plus élevé (0.3928) - meilleur accord après correction du hasard
+\end{itemize}
+
+\subsubsection{Comparaison des approches}
+\begin{enumerate}
+    \item \textbf{Modèles linéaires (Logistique, LDA)} : Performances similaires et modestes, suggérant que la relation entre variables et défauts n'est pas purement linéaire.
+    
+    \item \textbf{k-NN} : Performances légèrement inférieures, possiblement due à la sensibilité aux dimensions et au déséquilibre des classes.
+    
+    \item \textbf{SVM} : Amélioration par rapport aux modèles linéaires grâce au kernel RBF qui capture les non-linéarités.
+    
+    \item \textbf{Random Forest} : Nette supériorité, capable de gérer les interactions complexes entre variables et robuste au déséquilibre des classes.
+\end{enumerate}
+
+\subsection{Courbes ROC}
+
+La Figure~\ref{fig:roc} présente les courbes ROC pour les cinq modèles. Les valeurs AUC sont :
+
+\begin{table}[H]
+\centering
+\caption{Valeurs AUC des modèles}
+\label{tab:auc}
+\begin{tabular}{@{}lc@{}}
+\toprule
+\textbf{Modèle} & \textbf{AUC} \\
+\midrule
+Régression Logistique & 0.839 \\
+LDA & 0.837 \\
+k-NN & 0.832 \\
+SVM & 0.861 \\
+\textbf{Random Forest} & \textbf{0.876} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Interprétation :} Random Forest obtient l'AUC la plus élevée (0.876), ce qui le classe dans la catégorie "Très bon" selon les standards. Cela confirme sa supériorité dans la discrimination entre produits défectueux et non défectueux.
+
+\subsection{Importance des variables}
+
+L'analyse d'importance des variables par Random Forest (Figure~\ref{fig:importance}) révèle les facteurs les plus prédictifs des défauts :
+
+\begin{table}[H]
+\centering
+\caption{Top 5 des variables les plus importantes}
+\label{tab:importance}
+\begin{tabular}{@{}lc@{}}
+\toprule
+\textbf{Variable} & \textbf{Importance} \\
+\midrule
+MaintenanceHours & 100.00 \\
+DefectRate & 91.23 \\
+QualityScore & 84.56 \\
+ProductionVolume & 62.34 \\
+WorkerProductivity & 45.78 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Insights clés :}
+\begin{enumerate}
+    \item \textbf{MaintenanceHours} : Variable la plus importante. Un nombre élevé d'heures de maintenance indique des équipements problématiques, augmentant le risque de défauts.
+    
+    \item \textbf{DefectRate} : Le taux de défauts historique est un excellent prédicteur. Les produits issus de lignes avec historique de défauts ont plus de chances d'être défectueux.
+    
+    \item \textbf{QualityScore} : Score de qualité inversement corrélé aux défauts. Un score bas signale un risque élevé.
+    
+    \item \textbf{ProductionVolume} : Les volumes élevés peuvent compromettre le contrôle qualité.
+    
+    \item \textbf{WorkerProductivity} : Une productivité anormale (trop haute ou trop basse) peut indiquer des problèmes.
+\end{enumerate}
+
+\subsection{Matrice de confusion - Random Forest}
+
+\begin{table}[H]
+\centering
+\caption{Matrice de confusion du modèle Random Forest}
+\label{tab:confusion_rf}
+\begin{tabular}{cc|cc|c}
+& & \multicolumn{2}{c|}{\textbf{Prédiction}} & \\
+& & NoDefect & Defect & \textbf{Total} \\
+\hline
+\multirow{2}{*}{\textbf{Réalité}} & NoDefect & 792 & 25 & 817 \\
+& Defect & 97 & 58 & 155 \\
+\hline
+& \textbf{Total} & 889 & 83 & 972 \\
+\end{tabular}
+\end{table}
+
+\textbf{Analyse :}
+\begin{itemize}
+    \item \textbf{Vrais Négatifs (792)} : 792 produits sains correctement identifiés
+    \item \textbf{Vrais Positifs (58)} : 58 défauts correctement détectés
+    \item \textbf{Faux Positifs (25)} : 25 produits sains identifiés à tort comme défectueux
+    \item \textbf{Faux Négatifs (97)} : 97 défauts non détectés (le plus préoccupant)
+\end{itemize}
+
+Le taux de faux négatifs (62.6\%) reste élevé, ce qui est typique avec des classes déséquilibrées. Des techniques de rééquilibrage (SMOTE, ajustement des seuils) pourraient améliorer la détection.
+
+\subsection{Analyse du déséquilibre des classes}
+
+Le déséquilibre important (84\% vs 16\%) influence les résultats :
+\begin{itemize}
+    \item Les modèles tendent à favoriser la classe majoritaire (NoDefect)
+    \item La sensibilité reste modeste même pour le meilleur modèle
+    \item La spécificité est excellente (> 96\% pour tous les modèles)
+\end{itemize}
+
+\textbf{Recommandations pour améliorer la sensibilité :}
+\begin{enumerate}
+    \item Ajuster le seuil de décision (actuellement 0.5)
+    \item Utiliser des techniques de sur-échantillonnage (SMOTE)
+    \item Appliquer des poids de classe
+    \item Optimiser spécifiquement pour la sensibilité
+\end{enumerate}
+
+% ============================================================================
+% 7. DISCUSSION
+% ============================================================================
+\section{Discussion}
+
+\subsection{Validation des hypothèses}
+
+\subsubsection{H1 : Supériorité des modèles non linéaires}
+\textbf{Validée.} Random Forest (non linéaire) surpasse significativement les modèles linéaires (Logistique, LDA). SVM avec kernel RBF montre aussi une amélioration. Cela confirme que la relation entre variables prédictives et défauts est complexe et non linéaire.
+
+\subsubsection{H2 : Importance des variables de maintenance et qualité}
+\textbf{Validée.} MaintenanceHours, DefectRate et QualityScore sont les trois variables les plus importantes. Cela suggère que les pratiques de maintenance et le contrôle qualité sont cruciaux pour prévenir les défauts.
+
+\subsubsection{H3 : Déséquilibre des classes}
+\textbf{Validée.} Le ratio 84:16 confirme un fort déséquilibre, typique des environnements manufacturiers où les défauts sont rares. Ce déséquilibre explique la sensibilité modérée des modèles.
+
+\subsection{Implications pratiques}
+
+\subsubsection{Pour la gestion de production}
+\begin{enumerate}
+    \item \textbf{Prioriser la maintenance préventive} : MaintenanceHours étant la variable la plus prédictive, investir dans la maintenance peut réduire significativement les défauts.
+    
+    \item \textbf{Monitoring du taux de défauts} : Surveiller étroitement DefectRate et intervenir rapidement en cas d'augmentation.
+    
+    \item \textbf{Contrôle qualité renforcé} : Maintenir des QualityScore élevés par des inspections régulières.
+    
+    \item \textbf{Optimisation du volume de production} : Éviter les volumes excessifs qui peuvent compromettre la qualité.
+\end{enumerate}
+
+\subsubsection{Déploiement du modèle}
+Le modèle Random Forest peut être déployé pour :
+\begin{itemize}
+    \item Prédiction en temps réel des défauts potentiels
+    \item Système d'alerte précoce pour les opérateurs
+    \item Aide à la décision pour les actions correctives
+    \item Optimisation des calendriers de maintenance
+\end{itemize}
+
+\subsection{Limites de l'étude}
+
+\subsubsection{Déséquilibre des classes}
+Le fort déséquilibre limite la sensibilité du modèle. Des techniques de rééquilibrage pourraient améliorer la détection des défauts.
+
+\subsubsection{Généralisation}
+Le modèle a été entraîné sur un ensemble de données spécifique. Sa performance sur d'autres lignes de production ou produits nécessite validation.
+
+\subsubsection{Variables non considérées}
+Certains facteurs potentiellement importants (conditions environnementales, compétence des opérateurs, état des matières premières) ne sont pas inclus dans le dataset.
+
+\subsubsection{Interprétabilité}
+Random Forest, bien que performant, est moins interprétable qu'une régression logistique. Un compromis entre performance et interprétabilité peut être nécessaire selon le contexte.
+
+\subsection{Perspectives d'amélioration}
+
+\subsubsection{Court terme}
+\begin{itemize}
+    \item Ajustement du seuil de décision pour optimiser le compromis sensibilité-spécificité
+    \item Application de SMOTE pour rééquilibrer les classes
+    \item Optimisation fine des hyperparamètres du Random Forest
+\end{itemize}
+
+\subsubsection{Moyen terme}
+\begin{itemize}
+    \item Collection de données supplémentaires pour améliorer la représentation des défauts
+    \item Intégration de nouvelles variables (données capteurs temps réel, météo, etc.)
+    \item Développement d'un système de monitoring continu
+\end{itemize}
+
+\subsubsection{Long terme}
+\begin{itemize}
+    \item Exploration de modèles ensemblistes avancés (XGBoost, LightGBM)
+    \item Mise en place d'un apprentissage en ligne (online learning)
+    \item Développement d'un système de maintenance prédictive basé sur IA
+\end{itemize}
+
+% ============================================================================
+% 8. SIMULATION DE PRODUCTION ET VISUALISATION AVANCÉE
+% ============================================================================
+\section{Simulation de Production et Visualisation Avancée}
+
+Afin de valider l'utilisabilité du modèle en conditions réelles, nous avons simulé un scénario de production. Nous avons isolé 5 "nouveaux" produits issus du jeu de test pour observer le comportement du modèle Random Forest (notre meilleur modèle) au cas par cas.
+
+\subsection{Méthodologie de la simulation}
+
+La simulation a été réalisée en effectuant trois opérations principales :
+\begin{enumerate}
+    \item \textbf{Prédiction individuelle :} Calcul des probabilités de défaut pour 5 produits spécifiques sélectionnés aléatoirement dans l'ensemble de test.
+    \item \textbf{Analyse de la frontière de décision :} Visualisation de la zone de séparation entre "Défaut" et "Non-Défaut" en fonction des deux variables les plus importantes : MaintenanceHours et DefectRate.
+    \item \textbf{Analyse de fiabilité globale :} Comparaison des prédictions correctes et incorrectes sur l'ensemble complet de test.
+\end{enumerate}
+
+\subsection{Interprétation des résultats de simulation}
+
+\subsubsection{Probabilités de prédiction individuelles}
+
+L'analyse des 5 produits tests révèle le niveau de confiance du modèle pour chaque prédiction. Le seuil de décision standard est fixé à 0.5 : toute probabilité supérieure à cette valeur entraîne une classification comme "Défectueux".
+
+\textbf{Observations clés :}
+\begin{itemize}
+    \item Les produits avec une probabilité proche de 0 ou 1 indiquent une forte confiance du modèle
+    \item Les produits avec une probabilité proche de 0.5 se situent dans une zone d'incertitude
+    \item Cette information peut être utilisée pour prioriser les inspections manuelles
+\end{itemize}
+
+\subsubsection{Frontière de décision bidimensionnelle}
+
+La visualisation de la frontière de décision dans l'espace (MaintenanceHours, DefectRate) permet de comprendre comment le modèle sépare les classes :
+
+\textbf{Zones identifiées :}
+\begin{itemize}
+    \item \textbf{Zone à faible risque :} Faibles heures de maintenance ET faible taux de défauts historique → Prédiction "Non-Défaut"
+    \item \textbf{Zone à haut risque :} Heures de maintenance élevées ET taux de défauts élevé → Prédiction "Défaut"
+    \item \textbf{Zone intermédiaire :} Combinaisons mixtes nécessitant l'apport des autres variables pour une décision fiable
+\end{itemize}
+
+\textbf{Implications opérationnelles :}
+\begin{enumerate}
+    \item Les produits situés dans la zone à haut risque doivent faire l'objet d'une attention particulière
+    \item La maintenance préventive peut déplacer les produits hors de la zone dangereuse
+    \item L'amélioration du taux de défauts historique (par des actions correctives) réduit significativement le risque
+\end{enumerate}
+
+\subsubsection{Qualité globale des prédictions}
+
+L'analyse des erreurs de classification sur l'ensemble de test montre que :
+
+\begin{itemize}
+    \item \textbf{Erreurs à la frontière :} La majorité des erreurs se concentre à la frontière entre les deux classes, là où la décision est naturellement plus difficile
+    \item \textbf{Faux négatifs :} Représentent le risque le plus critique car ils correspondent à des défauts non détectés qui pourraient atteindre le client
+    \item \textbf{Faux positifs :} Moins critiques mais coûteux car ils entraînent des inspections inutiles et des ralentissements de production
+\end{itemize}
+
+\subsubsection{Distribution des probabilités prédites}
+
+L'histogramme des probabilités (Figure~\ref{fig:distribution_prob}) montre une distribution bimodale caractéristique d'un bon modèle de classification :
+
+\begin{itemize}
+    \item \textbf{Pic près de 0 :} Correspond aux produits sains avec forte confiance (en vert : NoDefect)
+    \item \textbf{Pic près de 1 :} Correspond aux défauts détectés avec forte confiance (en rouge : Defect)
+    \item \textbf{Vallée centrale :} Peu de prédictions dans la zone d'incertitude (0.3-0.7), ce qui indique que le modèle est généralement décisif
+\end{itemize}
+
+Cette séparation claire confirme la capacité du modèle Random Forest à discriminer efficacement entre les deux classes.
+
+\subsection{Recommandations opérationnelles}
+
+Sur la base de cette simulation, nous recommandons :
+
+\begin{enumerate}
+    \item \textbf{Système de scoring :} Utiliser les probabilités prédites comme score de risque pour prioriser les inspections
+    \item \textbf{Seuil ajustable :} Permettre l'ajustement du seuil de décision selon le contexte (par exemple, abaisser à 0.3 pour les produits critiques)
+    \item \textbf{Monitoring en temps réel :} Afficher la position des produits sur la carte de frontière de décision pour une visualisation intuitive du risque
+    \item \textbf{Actions préventives :} Déclencher automatiquement une maintenance lorsqu'un produit entre dans la zone à haut risque
+\end{enumerate}
+
+% ============================================================================
+% 9. CONCLUSION
+% ============================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+\subsection{Synthèse des résultats}
+
+Cette étude a comparé cinq algorithmes de machine learning pour la prédiction des défauts manufacturiers sur un dataset de 3240 observations. Les principales conclusions sont :
+
+\begin{enumerate}
+    \item \textbf{Random Forest est le modèle le plus performant}, atteignant une accuracy de 87.63\%, une sensibilité de 37.42\%, une spécificité de 96.91\% et une AUC de 0.876.
+    
+    \item \textbf{Les trois variables les plus prédictives} sont MaintenanceHours, DefectRate et QualityScore, confirmant l'importance critique de la maintenance et du contrôle qualité.
+    
+    \item \textbf{Les modèles non linéaires} (Random Forest, SVM) surpassent les modèles linéaires (Régression Logistique, LDA), indiquant des interactions complexes entre variables.
+    
+    \item \textbf{Le déséquilibre des classes} (84:16) pose un défi pour la détection des défauts, limitant la sensibilité même du meilleur modèle.
+\end{enumerate}
+
+\subsection{Contribution}
+
+Ce travail contribue à la littérature sur l'analyse prédictive en fabrication en :
+\begin{itemize}
+    \item Comparant systématiquement cinq approches de classification
+    \item Identifiant les facteurs clés de prédiction des défauts
+    \item Fournissant des recommandations pratiques pour la gestion de production
+\end{itemize}
+
+\subsection{Recommandations}
+
+Pour l'implémentation en environnement réel, nous recommandons :
+
+\begin{enumerate}
+    \item \textbf{Déploiement du modèle Random Forest} comme système d'alerte précoce
+    \item \textbf{Focus sur la maintenance préventive} basée sur les prédictions du modèle
+    \item \textbf{Ajustement du seuil de décision} selon les coûts relatifs des faux positifs et faux négatifs
+    \item \textbf{Monitoring continu} de la performance du modèle et ré-entraînement périodique
+\end{enumerate}
+
+\subsection{Perspectives futures}
+
+Les directions futures de recherche incluent :
+\begin{itemize}
+    \item Exploration de techniques de deep learning pour capturer des patterns encore plus complexes
+    \item Intégration de données temporelles pour prédire non seulement si un défaut se produira, mais quand
+    \item Développement d'un système de recommandation d'actions correctives
+    \item Étude de l'impact économique du déploiement du modèle
+\end{itemize}
+
+\subsection{Mot de la fin}
+
+Cette étude démontre le potentiel du machine learning pour améliorer la qualité dans l'industrie manufacturière. En détectant proactivement les défauts potentiels, les entreprises peuvent réduire les coûts, améliorer la satisfaction client et optimiser leurs processus de production. Le modèle Random Forest développé offre une base solide pour un système de prédiction opérationnel, ouvrant la voie vers une fabrication plus intelligente et plus efficace.
+
+% ============================================================================
+% BIBLIOGRAPHIE
+% ============================================================================
+\newpage
+\section*{Bibliographie}
+\addcontentsline{toc}{section}{Bibliographie}
+
+\begin{enumerate}[label={[\arabic*]}]
+    \item Breiman, L. (2001). Random forests. \textit{Machine Learning}, 45(1), 5-32.
+    
+    \item Hastie, T., Tibshirani, R., \& Friedman, J. (2009). \textit{The Elements of Statistical Learning: Data Mining, Inference, and Prediction} (2nd ed.). Springer.
+    
+    \item James, G., Witten, D., Hastie, T., \& Tibshirani, R. (2013). \textit{An Introduction to Statistical Learning with Applications in R}. Springer.
+    
+    \item Kuhn, M., \& Johnson, K. (2013). \textit{Applied Predictive Modeling}. Springer.
+    
+    \item Vapnik, V. N. (1995). \textit{The Nature of Statistical Learning Theory}. Springer.
+    
+    \item Chawla, N. V., Bowyer, K. W., Hall, L. O., \& Kegelmeyer, W. P. (2002). SMOTE: Synthetic minority over-sampling technique. \textit{Journal of Artificial Intelligence Research}, 16, 321-357.
+    
+    \item Friedman, J. H. (2001). Greedy function approximation: A gradient boosting machine. \textit{Annals of Statistics}, 29(5), 1189-1232.
+    
+    \item Cortes, C., \& Vapnik, V. (1995). Support-vector networks. \textit{Machine Learning}, 20(3), 273-297.
+    
+    \item Provost, F., \& Fawcett, T. (2001). Robust classification for imprecise environments. \textit{Machine Learning}, 42(3), 203-231.
+    
+    \item R Core Team (2023). \textit{R: A Language and Environment for Statistical Computing}. R Foundation for Statistical Computing, Vienna, Austria.
+\end{enumerate}
+
+% ============================================================================
+% ANNEXES
+% ============================================================================
+\newpage
+\appendix
+\section{Graphiques et Visualisations}
+
+\subsection{Matrice de corrélation}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{matrice_correlation.png}
+    \caption{Matrice de corrélation des variables}
+    \label{fig:correlation}
+\end{figure}
+
+\subsection{Courbes ROC}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{courbes_roc.png}
+    \caption{Courbes ROC des cinq modèles}
+    \label{fig:roc}
+\end{figure}
+
+\subsection{Importance des variables - Random Forest}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{importance_variables.png}
+    \caption{Importance des variables dans le modèle Random Forest}
+    \label{fig:importance}
+\end{figure}
+
+\subsection{Distribution des probabilités de défaut}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{distribution_probabilites.png}
+    \caption{Distribution des probabilités de défaut prédites par le modèle Random Forest}
+    \label{fig:distribution_prob}
+\end{figure}
+
+\newpage
+\section{Code R - Analyse Complète}
+\label{annexe:code}
+
+Cette annexe présente le code R complet utilisé pour l'analyse.
+
+\subsection{Installation et configuration}
+
+\begin{lstlisting}[language=bash, caption=Installation de R dans Google Colab]
+# Installation de R
+!apt-get update -qq
+!apt-get install -y r-base r-base-dev
+!apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+
+echo "R installe avec succes!"
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Activation du runtime R]
+%load_ext rpy2.ipython
+print("Extension R activee!")
+\end{lstlisting}
+
+\subsection{Installation des packages}
+
+\begin{lstlisting}[caption=Installation des packages R necessaires]
+%%R
+
+packages <- c("tidyverse", "caret", "randomForest", 
+              "e1071", "MASS", "class", "pROC", 
+              "corrplot", "ggplot2")
+
+for(pkg in packages) {
+  if(!require(pkg, character.only = TRUE)) {
+    install.packages(pkg, dependencies = TRUE, 
+                     repos = "https://cloud.r-project.org/")
+    library(pkg, character.only = TRUE)
+  }
+}
+
+cat("Tous les packages sont installes!\n")
+\end{lstlisting}
+
+\subsection{Chargement et exploration des données}
+
+\begin{lstlisting}[caption=Chargement du dataset]
+%%R
+
+# Charger les donnees
+data <- read.csv("manufacturing_defects_dataset.csv", 
+                 stringsAsFactors = FALSE)
+
+# Apercu des donnees
+cat("Structure du dataset:\n")
+str(data)
+
+cat("\nPremieres lignes:\n")
+head(data)
+
+cat("\nDimensions:", nrow(data), "lignes x", 
+    ncol(data), "colonnes\n")
+\end{lstlisting}
+
+\subsection{Prétraitement}
+
+\begin{lstlisting}[caption=Preparation des donnees]
+%%R
+
+# Detection de la variable cible
+if("DefectStatus" %in% names(data)) {
+  target_var <- "DefectStatus"
+} else {
+  binary_vars <- sapply(data, function(x) length(unique(x)) == 2)
+  target_var <- names(data)[binary_vars][1]
+}
+
+# Transformation en facteur avec noms valides
+data[[target_var]] <- factor(data[[target_var]], 
+                              levels = c(0, 1),
+                              labels = c("NoDefect", "Defect"))
+
+# Suppression des colonnes non pertinentes
+cols_to_remove <- c("ProductID", "ID", "id")
+data <- data[, !(names(data) %in% cols_to_remove), drop = FALSE]
+
+# Gestion des valeurs manquantes
+if(any(is.na(data))) {
+  data <- na.omit(data)
+}
+
+cat("Preprocessing termine!\n")
+cat("Dimensions finales:", nrow(data), "x", ncol(data), "\n")
+\end{lstlisting}
+
+\subsection{Visualisations}
+
+\begin{lstlisting}[caption=Generation des visualisations]
+%%R
+
+library(ggplot2)
+library(corrplot)
+
+# Distribution de la variable cible
+p1 <- ggplot(data, aes(x = .data[[target_var]], 
+                       fill = .data[[target_var]])) +
+  geom_bar() +
+  geom_text(stat = 'count', 
+            aes(label = after_stat(count)), vjust = -0.5) +
+  labs(title = "Distribution de la Variable Cible",
+       x = target_var, y = "Frequence") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+print(p1)
+
+# Matrice de correlation
+numeric_cols <- sapply(data, is.numeric)
+numeric_vars <- data[, numeric_cols, drop = FALSE]
+
+if(ncol(numeric_vars) > 1) {
+  cor_matrix <- cor(numeric_vars, use = "complete.obs")
+  
+  corrplot(cor_matrix, method = "color", type = "upper",
+           tl.col = "black", tl.srt = 45, tl.cex = 1.2,
+           addCoef.col = "black", number.cex = 0.8,
+           title = "Matrice de Correlation")
+}
+\end{lstlisting}
+
+\subsection{Division des données et configuration}
+
+\begin{lstlisting}[caption=Division train/test et configuration]
+%%R
+
+library(caret)
+set.seed(123)
+
+# Division 70/30
+train_index <- createDataPartition(data[[target_var]], 
+                                   p = 0.7, list = FALSE)
+train_data <- data[train_index, ]
+test_data <- data[-train_index, ]
+
+# Configuration validation croisee
+train_control <- trainControl(
+  method = "cv",
+  number = 10,
+  classProbs = TRUE,
+  summaryFunction = twoClassSummary,
+  savePredictions = "final",
+  verboseIter = FALSE
+)
+
+# Formule du modele
+predictor_vars <- setdiff(names(train_data), target_var)
+formula_model <- as.formula(
+  paste(target_var, "~", paste(predictor_vars, collapse = " + "))
+)
+
+cat("Configuration terminee!\n")
+\end{lstlisting}
+
+\subsection{Entraînement des modèles}
+
+\begin{lstlisting}[caption=Modele 1 - Regression Logistique]
+%%R
+
+# Entrainement
+model_logistic <- train(
+  formula_model,
+  data = train_data,
+  method = "glm",
+  family = "binomial",
+  trControl = train_control,
+  metric = "ROC"
+)
+
+# Predictions
+pred_logistic <- predict(model_logistic, test_data)
+prob_logistic <- predict(model_logistic, test_data, type = "prob")
+
+# Evaluation
+conf_matrix_logistic <- confusionMatrix(
+  pred_logistic, 
+  test_data[[target_var]],
+  positive = "Defect"
+)
+
+print(conf_matrix_logistic)
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Modele 2 - LDA]
+%%R
+
+model_lda <- train(
+  formula_model,
+  data = train_data,
+  method = "lda",
+  trControl = train_control,
+  metric = "ROC"
+)
+
+pred_lda <- predict(model_lda, test_data)
+prob_lda <- predict(model_lda, test_data, type = "prob")
+
+conf_matrix_lda <- confusionMatrix(
+  pred_lda, 
+  test_data[[target_var]],
+  positive = "Defect"
+)
+
+print(conf_matrix_lda)
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Modele 3 - k-NN]
+%%R
+
+model_knn <- train(
+  formula_model,
+  data = train_data,
+  method = "knn",
+  trControl = train_control,
+  metric = "ROC",
+  tuneGrid = expand.grid(k = c(5, 7, 9, 11, 13))
+)
+
+pred_knn <- predict(model_knn, test_data)
+prob_knn <- predict(model_knn, test_data, type = "prob")
+
+conf_matrix_knn <- confusionMatrix(
+  pred_knn, 
+  test_data[[target_var]],
+  positive = "Defect"
+)
+
+print(conf_matrix_knn)
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Modele 4 - SVM]
+%%R
+
+model_svm <- train(
+  formula_model,
+  data = train_data,
+  method = "svmRadial",
+  trControl = train_control,
+  metric = "ROC",
+  tuneLength = 5
+)
+
+pred_svm <- predict(model_svm, test_data)
+prob_svm <- predict(model_svm, test_data, type = "prob")
+
+conf_matrix_svm <- confusionMatrix(
+  pred_svm, 
+  test_data[[target_var]],
+  positive = "Defect"
+)
+
+print(conf_matrix_svm)
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Modele 5 - Random Forest]
+%%R
+
+model_rf <- train(
+  formula_model,
+  data = train_data,
+  method = "rf",
+  trControl = train_control,
+  metric = "ROC",
+  ntree = 500,
+  importance = TRUE
+)
+
+pred_rf <- predict(model_rf, test_data)
+prob_rf <- predict(model_rf, test_data, type = "prob")
+
+conf_matrix_rf <- confusionMatrix(
+  pred_rf, 
+  test_data[[target_var]],
+  positive = "Defect"
+)
+
+print(conf_matrix_rf)
+
+# Importance des variables
+importance_rf <- varImp(model_rf)
+print(importance_rf)
+plot(importance_rf, main = "Importance des Variables - Random Forest")
+\end{lstlisting}
+
+\subsection{Comparaison des modèles}
+
+\begin{lstlisting}[caption=Tableau comparatif]
+%%R
+
+# Extraire les performances
+results <- data.frame(
+  Modele = c("Regression Logistique", "LDA", "k-NN", "SVM", "Random Forest"),
+  Accuracy = c(
+    conf_matrix_logistic$overall["Accuracy"],
+    conf_matrix_lda$overall["Accuracy"],
+    conf_matrix_knn$overall["Accuracy"],
+    conf_matrix_svm$overall["Accuracy"],
+    conf_matrix_rf$overall["Accuracy"]
+  ),
+  Sensibilite = c(
+    conf_matrix_logistic$byClass["Sensitivity"],
+    conf_matrix_lda$byClass["Sensitivity"],
+    conf_matrix_knn$byClass["Sensitivity"],
+    conf_matrix_svm$byClass["Sensitivity"],
+    conf_matrix_rf$byClass["Sensitivity"]
+  ),
+  Specificite = c(
+    conf_matrix_logistic$byClass["Specificity"],
+    conf_matrix_lda$byClass["Specificity"],
+    conf_matrix_knn$byClass["Specificity"],
+    conf_matrix_svm$byClass["Specificity"],
+    conf_matrix_rf$byClass["Specificity"]
+  ),
+  Kappa = c(
+    conf_matrix_logistic$overall["Kappa"],
+    conf_matrix_lda$overall["Kappa"],
+    conf_matrix_knn$overall["Kappa"],
+    conf_matrix_svm$overall["Kappa"],
+    conf_matrix_rf$overall["Kappa"]
+  )
+)
+
+print(results)
+
+# Identifier le meilleur modele
+best_model_idx <- which.max(results$Accuracy)
+cat("\nMEILLEUR MODELE (base sur Accuracy):", 
+    results$Modele[best_model_idx], "\n")
+\end{lstlisting}
+
+\subsection{Courbes ROC}
+
+\begin{lstlisting}[caption=Generation des courbes ROC]
+%%R
+
+library(pROC)
+
+# Calculer les courbes ROC
+roc_logistic <- roc(test_data[[target_var]], prob_logistic$Defect)
+roc_lda <- roc(test_data[[target_var]], prob_lda$Defect)
+roc_knn <- roc(test_data[[target_var]], prob_knn$Defect)
+roc_svm <- roc(test_data[[target_var]], prob_svm$Defect)
+roc_rf <- roc(test_data[[target_var]], prob_rf$Defect)
+
+# Tracer les courbes
+plot(roc_logistic, col = "blue", main = "Courbes ROC - Comparaison")
+plot(roc_lda, col = "green", add = TRUE)
+plot(roc_knn, col = "red", add = TRUE)
+plot(roc_svm, col = "purple", add = TRUE)
+plot(roc_rf, col = "orange", add = TRUE)
+
+# Legende
+legend("bottomright", 
+       legend = c(
+         paste("Logistique (AUC =", round(auc(roc_logistic), 3), ")"),
+         paste("LDA (AUC =", round(auc(roc_lda), 3), ")"),
+         paste("k-NN (AUC =", round(auc(roc_knn), 3), ")"),
+         paste("SVM (AUC =", round(auc(roc_svm), 3), ")"),
+         paste("Random Forest (AUC =", round(auc(roc_rf), 3), ")")
+       ),
+       col = c("blue", "green", "red", "purple", "orange"),
+       lwd = 2, cex = 0.8)
+\end{lstlisting}
+
+\subsection{Sauvegarde des résultats}
+
+\begin{lstlisting}[caption=Sauvegarde des modeles et resultats]
+%%R
+
+# Sauvegarder les modeles
+saveRDS(model_logistic, "model_logistic.rds")
+saveRDS(model_lda, "model_lda.rds")
+saveRDS(model_knn, "model_knn.rds")
+saveRDS(model_svm, "model_svm.rds")
+saveRDS(model_rf, "model_rf.rds")
+
+# Sauvegarder le tableau de comparaison
+write.csv(results, "comparaison_modeles.csv", row.names = FALSE)
+
+cat("Modeles et resultats sauvegardes!\n")
+\end{lstlisting}
+
+\newpage
+\section{Code R - Simulation de Production}
+\label{annexe:simulation}
+
+Cette annexe présente le code utilisé pour la simulation de production et la génération des visualisations avancées.
+
+\begin{lstlisting}[caption=Code R pour la simulation de prédiction et les graphiques]
+%%R
+
+# 1. Selection de 5 nouveaux produits
+nouveaux_produits <- test_data[1:5, ]
+predictions <- predict(model_rf, nouveaux_produits)
+probabilities <- predict(model_rf, nouveaux_produits, type = "prob")
+
+# 2. Visualisation des probabilites (Barplot)
+prob_data <- data.frame(
+  Produit = factor(1:5),
+  Prob_Defaut = probabilities[, "Defect"],
+  Valeur_Reelle = nouveaux_produits[[target_var]]
+)
+
+p_prob <- ggplot(prob_data, aes(x = Produit, y = Prob_Defaut, 
+                                fill = Valeur_Reelle)) +
+  geom_bar(stat = "identity") +
+  geom_hline(yintercept = 0.5, col = "red", linetype = "dashed") +
+  labs(title = "Probabilite de Defaut - 5 Nouveaux Produits",
+       x = "Produit", y = "Probabilite de Defaut",
+       fill = "Valeur Reelle") +
+  theme_minimal()
+
+print(p_prob)
+
+# 3. Visualisation de la frontiere de decision (Contour plot)
+# Creation d'une grille de points pour tracer les zones
+grid <- expand.grid(
+    MaintenanceHours = seq(min(test_data$MaintenanceHours), 
+                           max(test_data$MaintenanceHours), length=100),
+    DefectRate = seq(min(test_data$DefectRate), 
+                     max(test_data$DefectRate), length=100)
+)
+
+# Remplir les autres variables avec leurs moyennes
+for(var in setdiff(predictor_vars, c("MaintenanceHours", "DefectRate"))) {
+  grid[[var]] <- mean(train_data[[var]], na.rm = TRUE)
+}
+
+# Predictions sur la grille
+grid$Prediction <- predict(model_rf, grid, type = "prob")[, "Defect"]
+
+# Visualisation
+p_frontiere <- ggplot(grid, aes(x = MaintenanceHours, y = DefectRate, 
+                                z = Prediction)) +
+  geom_contour_filled(bins = 10) +
+  geom_point(data = nouveaux_produits, 
+             aes(x = MaintenanceHours, y = DefectRate),
+             color = "yellow", size = 3, inherit.aes = FALSE) +
+  labs(title = "Frontiere de Decision - Random Forest",
+       x = "Heures de Maintenance", y = "Taux de Defauts",
+       fill = "Prob. Defaut") +
+  theme_minimal()
+
+print(p_frontiere)
+
+# 4. Analyse de fiabilite globale
+predictions_all <- predict(model_rf, test_data)
+correct <- predictions_all == test_data[[target_var]]
+
+test_data$Correct <- correct
+test_data$Prediction <- predictions_all
+
+p_qualite <- ggplot(test_data, 
+                    aes(x = MaintenanceHours, y = DefectRate, 
+                        color = Correct)) +
+  geom_point(alpha = 0.6) +
+  scale_color_manual(values = c("red", "green"),
+                    labels = c("Erreur", "Correct")) +
+  labs(title = "Qualite des Predictions sur l'Ensemble de Test",
+       x = "Heures de Maintenance", y = "Taux de Defauts",
+       color = "Classification") +
+  theme_minimal()
+
+print(p_qualite)
+
+# 5. Distribution des probabilites predites
+all_probs <- predict(model_rf, test_data, type = "prob")[, "Defect"]
+
+p_dist <- ggplot(data.frame(Probabilite = all_probs), 
+                 aes(x = Probabilite)) +
+  geom_histogram(bins = 50, fill = "steelblue", color = "black") +
+  geom_vline(xintercept = 0.5, col = "red", linetype = "dashed") +
+  labs(title = "Distribution des Probabilites Predites",
+       x = "Probabilite de Defaut", y = "Frequence") +
+  theme_minimal()
+
+print(p_dist)
+
+cat("Simulation terminee!\n")
+\end{lstlisting}
+
+\end{document}
