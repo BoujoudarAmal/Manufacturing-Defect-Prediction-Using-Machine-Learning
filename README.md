@@ -1,137 +1,130 @@
-# Manufacturing-Defect-Prediction-Using-Machine-Learning
-📌 Project Overview
+# 🏭 Manufacturing Defect Prediction Using Machine Learning
 
-This project focuses on predicting manufacturing defects using supervised machine learning models.
-The goal is to leverage industrial production data to build predictive systems capable of identifying defective products, improving quality control, and reducing operational losses.
+## 📌 Project Overview
 
-By applying multiple classification algorithms, this project evaluates model performance and provides actionable insights for industrial process optimization.
+This project focuses on predicting manufacturing defects using supervised machine learning techniques.  
+The objective is to analyze industrial production data and develop predictive models capable of identifying defective products in order to improve quality control and reduce operational losses.
 
-🎯 Problem Statement
+By comparing multiple classification algorithms, this project demonstrates how data-driven approaches can enhance industrial decision-making and production optimization.
 
-Manufacturing industries often face production losses due to defective items.
-Early detection of defects can:
+---
 
-Reduce waste and operational costs
+## 🎯 Problem Statement
 
-Improve product quality
+In manufacturing environments, defective products lead to:
 
-Enhance customer satisfaction
+- Increased operational costs  
+- Material waste  
+- Reduced productivity  
+- Lower customer satisfaction  
 
-Support data-driven industrial decision-making
+Early and accurate defect prediction is essential for maintaining high production standards.  
+The main challenge is handling complex process variables while achieving balanced model performance.
 
-The challenge lies in handling complex production variables while maintaining high prediction accuracy and balanced model performance.
+---
 
-📊 Dataset Description
+## 📊 Dataset Description
 
-The dataset contains industrial production measurements collected during the manufacturing process.
+The dataset contains production measurements collected during the manufacturing process.
 
 It includes:
 
-Multiple process-related features (e.g., temperature, pressure, operational parameters)
+- Multiple process-related features (e.g., temperature, pressure, operational parameters)  
+- A binary target variable:
+  - `0` → Non-defective product  
+  - `1` → Defective product  
 
-A binary target variable:
+The dataset reflects diverse industrial production scenarios, enabling robust model training and evaluation.
 
-0 → Non-defective product
+---
 
-1 → Defective product
+## ⚙️ Methodology
 
-The dataset represents diverse production scenarios, making it suitable for robust model training and evaluation.
+### 1️⃣ Data Preprocessing
+- Data cleaning and preparation  
+- Feature analysis  
+- Train-test split  
+- Normalization (when required)  
 
-⚙️ Methodology
-1️⃣ Data Preprocessing
+### 2️⃣ Model Implementation
 
-Data cleaning
+Five machine learning classification models were developed and compared:
 
-Feature analysis
+- Logistic Regression  
+- Decision Tree  
+- Random Forest  
+- Support Vector Machine (SVM)  
+- k-Nearest Neighbors (KNN)  
 
-Train-test split
+### 3️⃣ Model Evaluation
 
-Normalization (when required)
+Models were evaluated using:
 
-2️⃣ Model Implementation
+- Accuracy  
+- Precision  
+- Recall  
+- Confusion Matrix  
+- Decision threshold analysis  
 
-Five classification models were trained and evaluated:
+Special attention was given to balancing false positives and false negatives, which is critical in industrial applications.
 
-Logistic Regression
+---
 
-Decision Tree
+## 📈 Results & Key Insights
 
-Random Forest
+- Model performance varied depending on defect detection sensitivity.  
+- Some models minimized false positives, reducing unnecessary production interruptions.  
+- Others improved recall, increasing defect detection capability.  
+- Temperature and pressure-related variables were among the most influential predictors.  
+- The optimal model depends on industrial priorities (cost reduction vs. detection sensitivity).  
 
-Support Vector Machine (SVM)
+---
 
-k-Nearest Neighbors (KNN)
+## 🛠 Technologies & Tools
 
-3️⃣ Model Evaluation
+- Python  
+- Pandas  
+- NumPy  
+- Scikit-learn  
+- Matplotlib  
+- Seaborn  
+- Google Colab  
 
-Models were compared using:
+---
 
-Accuracy
+## 📂 Project Structure
 
-Precision
-
-Recall
-
-Confusion Matrix
-
-Probability-based decision threshold analysis
-
-Special attention was given to the trade-off between false positives and false negatives, which is critical in industrial environments.
-
-📈 Results & Key Insights
-
-Model performance varied depending on defect detection sensitivity.
-
-Some models minimized false positives, reducing unnecessary production stops.
-
-Others improved recall, increasing defect detection capability.
-
-Temperature and pressure-related variables were among the most influential predictors.
-
-The optimal model choice depends on whether the priority is cost reduction or defect detection accuracy.
-
-🛠 Technologies & Tools
-
-Python
-
-Pandas
-
-NumPy
-
-Scikit-learn
-
-Matplotlib
-
-Seaborn
-
-Google Colab
-
-📂 Project Structure
+```
 ├── manufacturing_defect_dataset.csv
 ├── Analyse_Defauts_Manufacturiers.ipynb
 ├── Presentation_Projet.pptx
 ├── Rapport_Statistique.pdf
 └── README.md
-🚀 Industrial Impact
+```
+
+---
+
+## 🚀 Industrial Impact
 
 This project demonstrates how machine learning can:
 
-✔ Improve quality control systems
-✔ Reduce defect rates
-✔ Support real-time production monitoring
-✔ Enable data-driven manufacturing optimization
+✔ Improve quality control systems  
+✔ Reduce manufacturing defects  
+✔ Support data-driven production decisions  
+✔ Enhance industrial productivity  
 
-🔮 Future Improvements
+---
 
-Hyperparameter tuning optimization
+## 🔮 Future Improvements
 
-Cross-validation for improved robustness
+- Hyperparameter tuning optimization  
+- Cross-validation for improved robustness  
+- Advanced ensemble models  
+- Real-time deployment dashboard  
 
-Implementation of advanced ensemble methods
+---
 
-Deployment as a real-time monitoring dashboard
+## 👩‍💻 Author
 
-👩‍💻 Author
-
-Amal Boujoudar
+**Amal Boujoudar**  
 Industrial Data Analysis & Machine Learning Enthusiast
